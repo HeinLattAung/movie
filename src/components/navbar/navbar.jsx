@@ -84,6 +84,9 @@ const Navbar = () => {
       setSearchOpen(false);
       setSearchQuery('');
       setResults([]);
+    } else if (e.key === 'Enter') {
+      clearTimeout(debounceRef.current);
+      doSearch(searchQuery);
     }
   };
 
