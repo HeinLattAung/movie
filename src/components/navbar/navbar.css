@@ -68,9 +68,15 @@
   background: rgba(20, 20, 35, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  overflow: hidden;
   width: 44px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-container:not(.search-open) .search-input,
+.search-container:not(.search-open) .search-clear {
+  overflow: hidden;
+  width: 0;
+  padding: 0;
 }
 
 .search-container.search-open {

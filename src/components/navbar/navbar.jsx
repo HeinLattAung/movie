@@ -58,7 +58,7 @@ const Navbar = () => {
     const val = e.target.value;
     setSearchQuery(val);
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => doSearch(val), 500);
+    debounceRef.current = setTimeout(() => doSearch(val), 800);
   };
 
   const handleToggleSearch = () => {
