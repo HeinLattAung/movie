@@ -505,36 +505,100 @@
   .landing-nav {
     padding: 20px 24px;
   }
+  .nav-actions {
+    gap: 8px;
+  }
+  .btn-ghost {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  .btn-primary {
+    padding: 10px 18px;
+    font-size: 13px;
+  }
   .hero-content {
     padding: 0 24px;
+  }
+  .hero-badge {
+    font-size: 11px;
+    padding: 6px 14px;
+    margin-bottom: 18px;
   }
   .hero-title {
     font-size: 36px;
     letter-spacing: -1px;
   }
   .hero-subtitle {
-    font-size: 16px;
+    font-size: 15px;
+    margin-bottom: 28px;
   }
   .hero-cta {
     flex-direction: column;
+    margin-bottom: 40px;
+  }
+  .btn-lg {
+    padding: 14px 28px;
+    font-size: 15px;
   }
   .hero-stats {
     flex-direction: column;
     gap: 20px;
     align-items: flex-start;
   }
+  .stat-number {
+    font-size: 24px;
+  }
+  .stat-label {
+    font-size: 12px;
+  }
   .stat-divider {
     width: 40px;
     height: 1px;
   }
+  .features {
+    padding: 80px 0;
+  }
   .features-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .feature-card {
+    padding: 28px 24px;
+    border-radius: 16px;
+  }
+  .feature-card h3 {
+    font-size: 16px;
+  }
+  .feature-card p {
+    font-size: 13px;
+  }
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .feature-icon svg {
+    width: 26px;
+    height: 26px;
   }
   .section-container {
     padding: 0 24px;
   }
   .section-title {
     font-size: 30px;
+    letter-spacing: -1px;
+  }
+  .section-subtitle {
+    font-size: 15px;
+    margin-bottom: 40px;
+  }
+  .cta-section {
+    padding: 80px 0;
+  }
+  .cta-glow {
+    width: 400px;
+    height: 400px;
   }
   .footer-content {
     flex-direction: column;
@@ -543,5 +607,143 @@
   .cta-buttons {
     flex-direction: column;
     align-items: center;
+  }
+  .landing-footer {
+    padding: 32px 24px;
+  }
+  .footer-copy {
+    font-size: 12px;
+  }
+}
+
+/* --- Small Mobile --- */
+@media (max-width: 480px) {
+  .landing-nav {
+    padding: 16px 16px;
+  }
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+    border-radius: 10px;
+  }
+  .logo-text {
+    font-size: 18px;
+  }
+  .nav-actions {
+    gap: 6px;
+  }
+  .btn-ghost {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .btn-primary {
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+  .hero-content {
+    padding: 0 16px;
+  }
+  .hero-badge {
+    font-size: 10px;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+  }
+  .hero-title {
+    font-size: 28px;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+  }
+  .hero-subtitle {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .hero-cta {
+    margin-bottom: 32px;
+  }
+  .btn-lg {
+    padding: 12px 24px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+  .hero-stats {
+    gap: 16px;
+  }
+  .stat-number {
+    font-size: 22px;
+  }
+  .stat-label {
+    font-size: 11px;
+  }
+  .stat-divider {
+    width: 32px;
+  }
+  .features {
+    padding: 60px 0;
+  }
+  .section-container {
+    padding: 0 16px;
+  }
+  .section-title {
+    font-size: 24px;
+    letter-spacing: -0.5px;
+  }
+  .section-subtitle {
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+  .features-grid {
+    gap: 12px;
+  }
+  .feature-card {
+    padding: 24px 20px;
+    border-radius: 14px;
+  }
+  .feature-card h3 {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .feature-card p {
+    font-size: 12px;
+  }
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+  }
+  .feature-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  .cta-section {
+    padding: 60px 0;
+  }
+  .cta-glow {
+    width: 300px;
+    height: 300px;
+  }
+  .cta-buttons .btn-lg {
+    width: 100%;
+  }
+  .landing-footer {
+    padding: 24px 16px;
+  }
+  .footer-logo .logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .footer-logo .logo-text {
+    font-size: 14px;
+  }
+  .footer-copy {
+    font-size: 11px;
   }
 }

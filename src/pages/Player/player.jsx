@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getMovieDetails, getMovieVideos, getSimilarMovies, getMovieCredits } from '../../services/tmdb.js'
+import { useFavorites } from '../../context/FavoritesContext.jsx'
 import TitleCard from '../../components/titleCard/titlecard.jsx'
 import './player.css'
 
 const Player = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const [anime, setAnime] = useState(null);
   const [trailer, setTrailer] = useState(null);
   const [similar, setSimilar] = useState([]);
@@ -113,6 +115,15 @@ const Player = () => {
                 {anime.status && <span className="p-meta-badge">{anime.status}</span>}
                 {anime.vote_average > 0 && <span className="p-meta-badge p-meta-rating">{anime.vote_average.toFixed(1)}</span>}
               </div>
+              <button
+                className={`p-fav-btn ${isFavorite(anime.id) ? 'favorited' : ''}`}
+                onClick={() => isFavorite(anime.id) ? removeFavorite(anime.id) : addFavorite(anime)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={isFavorite(anime.id) ? '#e50914' : 'none'} stroke={isFavorite(anime.id) ? '#e50914' : 'currentColor'} strokeWidth="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {isFavorite(anime.id) ? 'Remove from Favorites' : 'Add to Favorites'}
+              </button>
               {anime.genres?.length > 0 && (
                 <div className="player-genres">
                   {anime.genres.map(g => <span key={g.id} className="genre-tag">{g.name}</span>)}

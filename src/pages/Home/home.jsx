@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useFavorites } from '../../context/FavoritesContext.jsx'
 import './home.css'
 import Navbar from '../../components/navbar/navbar.jsx'
 import TitleCard from '../../components/titleCard/titlecard.jsx'
@@ -31,6 +32,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const heroLocked = useRef(false);
+  const { favorites } = useFavorites();
 
   useEffect(() => {
     let cancelled = false;
@@ -140,6 +142,20 @@ const Home = () => {
 
       {/* Anime Rows */}
       <div className="home-content">
+        {/* My Favorites */}
+        {favorites.length > 0 && (
+          <section className="movie-section scroll-reveal">
+            <div className="section-header">
+              <h2>My Favorites</h2>
+            </div>
+            <div className="movie-row">
+              {favorites.map((anime, i) => (
+                <TitleCard key={`fav-${anime.id}-${i}`} movie={anime} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {categories.map((cat, idx) => {
           const items = sections[cat.title];
           if (!items || items.length === 0) {
