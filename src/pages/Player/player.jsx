@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getMovieDetails, getMovieVideos, getSimilarMovies, getMovieCredits } from '../../services/tmdb.js'
 import { useFavorites } from '../../context/FavoritesContext.jsx'
 import TitleCard from '../../components/titleCard/titlecard.jsx'
+import Navbar from '../../components/navbar/navbar.jsx'
+import Footer from '../../components/footer/footer.jsx'
 import './player.css'
 
 const Player = () => {
@@ -65,6 +67,8 @@ const Player = () => {
 
   return (
     <div className="player-page">
+      <Navbar />
+
       {/* Video Section */}
       <div className="player-video-section">
         {trailer ? (
@@ -178,6 +182,8 @@ const Player = () => {
           Back to Browse
         </button>
       </div>
+
+      <Footer />
     </div>
   )
 }

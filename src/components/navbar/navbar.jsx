@@ -6,10 +6,10 @@ import './navbar.css'
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -28,9 +28,7 @@ const Navbar = () => {
     const handleClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
       if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setSearchOpen(false);
         setResults([]);
-        setSearchQuery('');
       }
     };
     document.addEventListener('mousedown', handleClick);
@@ -41,6 +39,7 @@ const Navbar = () => {
     if (!query || query.trim().length < 2) {
       setResults([]);
       setSearching(false);
+      setHasSearched(false);
       return;
     }
     setSearching(true);
@@ -51,29 +50,19 @@ const Navbar = () => {
       setResults([]);
     } finally {
       setSearching(false);
+      setHasSearched(true);
     }
   }, []);
 
   const handleSearchChange = (e) => {
     const val = e.target.value;
     setSearchQuery(val);
+    setHasSearched(false);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => doSearch(val), 800);
   };
 
-  const handleToggleSearch = () => {
-    if (searchOpen) {
-      setSearchOpen(false);
-      setSearchQuery('');
-      setResults([]);
-    } else {
-      setSearchOpen(true);
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  };
-
   const handleResultClick = (id) => {
-    setSearchOpen(false);
     setSearchQuery('');
     setResults([]);
     navigate(`/player/${id}`);
@@ -81,9 +70,9 @@ const Navbar = () => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
-      setSearchOpen(false);
       setSearchQuery('');
       setResults([]);
+      inputRef.current?.blur();
     } else if (e.key === 'Enter') {
       clearTimeout(debounceRef.current);
       doSearch(searchQuery);
@@ -106,13 +95,13 @@ const Navbar = () => {
 
       <div className="navbar-center">
         <div className="search-wrapper" ref={searchRef}>
-          <div className={`search-container ${searchOpen ? 'search-open' : ''}`}>
-            <button className="search-toggle" onClick={handleToggleSearch}>
+          <div className="search-container">
+            <div className="search-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
               </svg>
-            </button>
+            </div>
             <input
               ref={inputRef}
               type="text"
@@ -132,7 +121,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {searchOpen && (searchQuery.trim().length >= 2) && (
+          {(searchQuery.trim().length >= 2) && (searching || hasSearched) && (
             <div className="search-dropdown">
               {searching ? (
                 <div className="search-status">

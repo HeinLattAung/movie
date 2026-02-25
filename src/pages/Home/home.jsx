@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useFavorites } from '../../context/FavoritesContext.jsx'
 import './home.css'
 import Navbar from '../../components/navbar/navbar.jsx'
@@ -12,18 +12,18 @@ import {
 } from '../../services/tmdb.js'
 
 const categories = [
-  { title: 'Trending Now', fetcher: getTrending },
-  { title: 'New This Season', fetcher: getNowPlaying },
-  { title: 'Top Rated of All Time', fetcher: getTopRated },
-  { title: 'Most Popular', fetcher: getPopular },
-  { title: 'Fan Favorites', fetcher: getFavorite },
-  { title: 'Upcoming', fetcher: getUpcoming },
-  { title: 'Action', fetcher: getAction },
-  { title: 'Comedy', fetcher: getComedy },
-  { title: 'Romance', fetcher: getRomance },
-  { title: 'Sci-Fi', fetcher: getSciFi },
-  { title: 'Fantasy', fetcher: getFantasy },
-  { title: 'Slice of Life', fetcher: getSliceOfLife },
+  { key: 'trending', title: 'Trending Now', fetcher: getTrending },
+  { key: 'new-this-season', title: 'New This Season', fetcher: getNowPlaying },
+  { key: 'top-rated', title: 'Top Rated of All Time', fetcher: getTopRated },
+  { key: 'popular', title: 'Most Popular', fetcher: getPopular },
+  { key: 'fan-favorites', title: 'Fan Favorites', fetcher: getFavorite },
+  { key: 'upcoming', title: 'Upcoming', fetcher: getUpcoming },
+  { key: 'action', title: 'Action', fetcher: getAction },
+  { key: 'comedy', title: 'Comedy', fetcher: getComedy },
+  { key: 'romance', title: 'Romance', fetcher: getRomance },
+  { key: 'sci-fi', title: 'Sci-Fi', fetcher: getSciFi },
+  { key: 'fantasy', title: 'Fantasy', fetcher: getFantasy },
+  { key: 'slice-of-life', title: 'Slice of Life', fetcher: getSliceOfLife },
 ];
 
 const Home = () => {
@@ -31,8 +31,12 @@ const Home = () => {
   const [hero, setHero] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const heroLocked = useRef(false);
   const { favorites } = useFavorites();
+
+  const activeCategory = searchParams.get('category');
+  const activeCat = activeCategory ? categories.find(c => c.key === activeCategory) : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -85,7 +89,7 @@ const Home = () => {
       <Navbar />
 
       {/* Hero Banner */}
-      <section
+      {!activeCat && <section
         className="home-hero"
         style={!hero?.trailerYoutubeId && hero?.backdrop_path ? {
           backgroundImage: `url(${backdropUrl(hero.backdrop_path)})`,
@@ -138,57 +142,87 @@ const Home = () => {
             </div>
           </div>
         )}
-      </section>
+      </section>}
 
       {/* Anime Rows */}
-      <div className="home-content">
-        {/* My Favorites */}
-        {favorites.length > 0 && (
-          <section className="movie-section scroll-reveal">
+      <div className={`home-content${activeCat ? ' category-active' : ''}`}>
+        {activeCat ? (
+          /* Category Detail View */
+          <section className="movie-section scroll-reveal visible">
             <div className="section-header">
-              <h2>My Favorites</h2>
+              <button className="see-all-back" onClick={() => setSearchParams({})}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
+              <h2>{activeCat.title}</h2>
             </div>
-            <div className="movie-row">
-              {favorites.map((anime, i) => (
-                <TitleCard key={`fav-${anime.id}-${i}`} movie={anime} />
+            <div className="category-grid">
+              {(sections[activeCat.title] || []).map((anime, i) => (
+                <TitleCard key={`${anime.id}-${i}`} movie={anime} />
               ))}
+              {!sections[activeCat.title] && (
+                <div className="loading-cards">
+                  {[1, 2, 3, 4, 5, 6].map(j => (
+                    <div key={j} className="loading-card" />
+                  ))}
+                </div>
+              )}
             </div>
           </section>
-        )}
+        ) : (
+          /* Normal Browse View */
+          <>
+            {/* My Favorites */}
+            {favorites.length > 0 && (
+              <section className="movie-section scroll-reveal">
+                <div className="section-header">
+                  <h2>My Favorites</h2>
+                </div>
+                <div className="movie-row">
+                  {favorites.map((anime, i) => (
+                    <TitleCard key={`fav-${anime.id}-${i}`} movie={anime} />
+                  ))}
+                </div>
+              </section>
+            )}
 
-        {categories.map((cat, idx) => {
-          const items = sections[cat.title];
-          if (!items || items.length === 0) {
-            if (loading || !sections[cat.title]) {
+            {categories.map((cat, idx) => {
+              const items = sections[cat.title];
+              if (!items || items.length === 0) {
+                if (loading || !sections[cat.title]) {
+                  return (
+                    <section key={cat.title} className="movie-section">
+                      <div className="section-header">
+                        <h2>{cat.title}</h2>
+                      </div>
+                      <div className="loading-cards">
+                        {[1, 2, 3, 4, 5, 6].map(j => (
+                          <div key={j} className="loading-card" />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                }
+                return null;
+              }
               return (
-                <section key={cat.title} className="movie-section">
+                <section key={cat.title} className="movie-section scroll-reveal" style={{ transitionDelay: `${idx * 0.05}s` }}>
                   <div className="section-header">
                     <h2>{cat.title}</h2>
+                    <button className="see-all" onClick={() => { setSearchParams({ category: cat.key }); window.scrollTo(0, 0); }}>See all</button>
                   </div>
-                  <div className="loading-cards">
-                    {[1, 2, 3, 4, 5, 6].map(j => (
-                      <div key={j} className="loading-card" />
+                  <div className="movie-row">
+                    {items.map((anime, i) => (
+                      <TitleCard key={`${anime.id}-${i}`} movie={anime} />
                     ))}
                   </div>
                 </section>
               );
-            }
-            return null;
-          }
-          return (
-            <section key={cat.title} className="movie-section scroll-reveal" style={{ transitionDelay: `${idx * 0.05}s` }}>
-              <div className="section-header">
-                <h2>{cat.title}</h2>
-                <button className="see-all">See all</button>
-              </div>
-              <div className="movie-row">
-                {items.map((anime, i) => (
-                  <TitleCard key={`${anime.id}-${i}`} movie={anime} />
-                ))}
-              </div>
-            </section>
-          );
-        })}
+            })}
+          </>
+        )}
       </div>
 
       <Footer />
