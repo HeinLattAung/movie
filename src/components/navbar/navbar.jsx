@@ -102,30 +102,32 @@ const Navbar = () => {
       </div>
 
       <div className="navbar-center">
-        <div className={`search-container ${searchOpen ? 'search-open' : ''}`} ref={searchRef}>
-          <button className="search-toggle" onClick={handleToggleSearch}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-          </button>
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Search anime..."
-            className="search-input"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-          />
-          {searchQuery && (
-            <button className="search-clear" onClick={() => { setSearchQuery(''); setResults([]); inputRef.current?.focus(); }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
+        <div className="search-wrapper" ref={searchRef}>
+          <div className={`search-container ${searchOpen ? 'search-open' : ''}`}>
+            <button className="search-toggle" onClick={handleToggleSearch}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
             </button>
-          )}
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Search anime..."
+              className="search-input"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+            />
+            {searchQuery && (
+              <button className="search-clear" onClick={() => { setSearchQuery(''); setResults([]); inputRef.current?.focus(); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
+          </div>
 
           {searchOpen && (searchQuery.trim().length >= 2) && (
             <div className="search-dropdown">
