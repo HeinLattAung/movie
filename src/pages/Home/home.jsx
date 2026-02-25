@@ -37,6 +37,12 @@ const Home = () => {
 
   const activeCategory = searchParams.get('category');
   const activeCat = activeCategory ? categories.find(c => c.key === activeCategory) : null;
+  const [iframeReady, setIframeReady] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIframeReady(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,13 +103,14 @@ const Home = () => {
           backgroundPosition: 'center top',
         } : undefined}
       >
-        {hero?.trailerYoutubeId && (
+        {hero?.trailerYoutubeId && iframeReady && (
           <div className="hero-video-bg">
             <iframe
               src={`https://www.youtube.com/embed/${hero.trailerYoutubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.trailerYoutubeId}&modestbranding=1&iv_load_policy=3&disablekb=1`}
               title="Hero trailer"
               frameBorder="0"
               allow="autoplay"
+              loading="lazy"
               className="hero-video-iframe"
             />
           </div>

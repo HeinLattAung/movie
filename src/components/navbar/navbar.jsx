@@ -85,19 +85,19 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
-      <div className="navbar-left">
+    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`} style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
+      <div className="navbar-left" style={{ flexShrink: 0 }}>
         <div className="nav-brand" onClick={() => navigate('/home')}>
           <div className="brand-icon">K</div>
           <span className="brand-text">Kraken's Cinema</span>
         </div>
       </div>
 
-      <div className="navbar-center">
+      <div className="navbar-center" style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
         <div className="search-wrapper" ref={searchRef}>
           <div className="search-container">
             <div className="search-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
               </svg>
@@ -105,8 +105,10 @@ const Navbar = () => {
             <input
               ref={inputRef}
               type="text"
+              size={1}
               placeholder="Search anime..."
               className="search-input"
+              style={{ width: 0, minWidth: 0, flex: 1 }}
               value={searchQuery}
               onChange={handleSearchChange}
               onKeyDown={handleKeyDown}
@@ -172,7 +174,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="navbar-right">
+      <div className="navbar-right" style={{ flexShrink: 0 }}>
         <div className="user-menu" ref={menuRef}>
           <button className="avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
             <div className="avatar">{user?.avatar || 'U'}</div>
