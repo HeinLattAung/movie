@@ -85,7 +85,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`} style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
+    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`} style={{ display: 'flex', alignItems: 'center', maxWidth: '100vw', boxSizing: 'border-box' }}>
       <div className="navbar-left" style={{ flexShrink: 0 }}>
         <div className="nav-brand" onClick={() => navigate('/home')}>
           <div className="brand-icon">K</div>
@@ -93,9 +93,9 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="navbar-center" style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+      <div className="navbar-center" style={{ flex: 1, minWidth: 0 }}>
         <div className="search-wrapper" ref={searchRef}>
-          <div className="search-container">
+          <div className="search-container" style={{ display: 'flex', overflow: 'hidden' }}>
             <div className="search-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
