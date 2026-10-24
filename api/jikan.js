@@ -22,6 +22,14 @@ export default async function handler(req, res) {
     if (allowedParams.has(key)) upstream.searchParams.set(key, value);
   }
 
+  // Prefer the reachable provider; Jikan remains the backup.
+  try {
+    const data = await fallbackAnime(path, incoming.searchParams);
+    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
+    res.setHeader('X-Anime-Provider', 'AniList');
+    return res.status(200).json(data);
+  } catch { /* Try Jikan if AniList is unavailable. */ }
+
   try {
     const response = await fetch(upstream, { signal: AbortSignal.timeout(6000) });
     if (!response.ok) {
@@ -37,12 +45,6 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
     return res.status(200).json(data);
   } catch {
-    try {
-      const data = await fallbackAnime(path, incoming.searchParams);
-      res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
-      res.setHeader('X-Anime-Provider', 'AniList');
-      return res.status(200).json(data);
-    } catch { /* Both providers are unavailable. */ }
     return res.status(502).json({ message: 'Anime provider could not be reached. Please retry.' });
   }
 }

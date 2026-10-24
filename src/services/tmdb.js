@@ -4,56 +4,60 @@ const BASE = '/api/anime';
 // Serialize requests and bound retries so a failed request cannot stall the queue.
 const queue = [];
 const pending = new Map();
-let processing = false;
+let active = 0;
+let nextStart = 0;
+const cache = new Map();
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-async function processQueue() {
-  if (processing) return;
-  processing = true;
+function processQueue() {
+  while (active < 3 && queue.length) {
+    const task = queue.shift();
+    active++;
+    runTask(task).finally(() => { active--; processQueue(); });
+  }
+}
+
+async function runTask(task) {
+  const start = Math.max(Date.now(), nextStart);
+  nextStart = start + 400;
+  await pause(start - Date.now());
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 16000);
+  let retryDelay = 1000 * (task.attempt + 1);
   try {
-    while (queue.length) {
-      const task = queue.shift();
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 16000);
-      let retryDelay = 1000 * (task.attempt + 1);
-      try {
-        const res = await fetch(task.url, { signal: controller.signal });
-        if (!res.ok) {
-          const error = new Error(`Jikan: ${res.status}`);
-          error.retryable = res.status === 429 || res.status >= 500;
-          const retryAfter = res.headers.get('Retry-After');
-          if (retryAfter) {
-            const seconds = Number(retryAfter);
-            const delay = Number.isFinite(seconds) ? seconds * 1000 : Date.parse(retryAfter) - Date.now();
-            if (Number.isFinite(delay)) retryDelay = Math.max(1000, Math.min(delay, 10000));
-          }
-          throw error;
-        }
-        task.resolve(await res.json());
-      } catch (error) {
-        if (task.attempt < 2 && error.retryable !== false) {
-          // Rejoin at the back so other categories can still load.
-          setTimeout(() => {
-            queue.push({ ...task, attempt: task.attempt + 1 });
-            processQueue();
-          }, retryDelay);
-        } else {
-          task.reject(new Error('Anime could not be loaded. Check your connection and try again.', { cause: error }));
-        }
-      } finally {
-        clearTimeout(timeout);
-      }
-      await pause(400);
+    const res = await fetch(task.url, { signal: controller.signal });
+    if (!res.ok) {
+      const error = new Error(`Anime API: ${res.status}`);
+      error.retryable = res.status === 429 || res.status >= 500;
+      const seconds = Number(res.headers.get('Retry-After'));
+      if (seconds > 0) retryDelay = Math.min(seconds * 1000, 10000);
+      throw error;
+    }
+    const data = await res.json();
+    cache.set(task.url, { data, expires: Date.now() + 300000 });
+    task.resolve(data);
+  } catch (error) {
+    if (task.attempt < 2 && error.retryable !== false) {
+      setTimeout(() => {
+        queue.push({ ...task, attempt: task.attempt + 1 });
+        processQueue();
+      }, retryDelay);
+    } else {
+      task.reject(new Error('Anime could not be loaded. Check your connection and try again.', { cause: error }));
     }
   } finally {
-    processing = false;
+    clearTimeout(timeout);
   }
 }
 
 function jikanFetch(url) {
+  const cached = cache.get(url);
+  if (cached?.expires > Date.now()) return Promise.resolve(cached.data);
   if (pending.has(url)) return pending.get(url);
   const request = new Promise((resolve, reject) => {
-    queue.push({ url, resolve, reject, attempt: 0 });
+    const task = { url, resolve, reject, attempt: 0 };
+    if (/\/anime\/\d+\/full/.test(url)) queue.unshift(task);
+    else queue.push(task);
     processQueue();
   }).finally(() => pending.delete(url));
   pending.set(url, request);

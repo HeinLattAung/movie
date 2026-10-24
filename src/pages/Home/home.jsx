@@ -1,3 +1,4 @@
+import HeroVideo from '../../components/HeroVideo.jsx'
 import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useFavorites } from '../../context/FavoritesContext.jsx'
@@ -38,13 +39,6 @@ const Home = () => {
 
   const activeCategory = searchParams.get('category');
   const activeCat = activeCategory ? categories.find(c => c.key === activeCategory) : null;
-  const [iframeReady, setIframeReady] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIframeReady(true), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -110,24 +104,13 @@ const Home = () => {
       {/* Hero Banner */}
       {!activeCat && <section
         className="home-hero"
-        style={!hero?.trailerYoutubeId && hero?.backdrop_path ? {
+        style={hero?.backdrop_path ? {
           backgroundImage: `url(${backdropUrl(hero.backdrop_path)})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center top',
         } : undefined}
       >
-        {hero?.trailerYoutubeId && iframeReady && (
-          <div className="hero-video-bg">
-            <iframe
-              src={`https://www.youtube.com/embed/${hero.trailerYoutubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${hero.trailerYoutubeId}&modestbranding=1&iv_load_policy=3&disablekb=1`}
-              title="Hero trailer"
-              frameBorder="0"
-              allow="autoplay"
-              loading="lazy"
-              className="hero-video-iframe"
-            />
-          </div>
-        )}
+        {hero?.trailerYoutubeId && <HeroVideo key={hero.trailerYoutubeId} videoId={hero.trailerYoutubeId} />}
         <div className="home-hero-overlay" />
         {hero ? (
           <div className="home-hero-content animate-fade-in-up">

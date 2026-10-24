@@ -18,40 +18,39 @@ const Player = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const load = async () => {
       setLoading(true);
+      setAnime(null);
+      setTrailer(null);
+      setSimilar([]);
+      setCast([]);
       try {
         const details = await getMovieDetails(id);
+        if (cancelled) return;
         setAnime(details);
-
-        // Trailer from details
+        setLoading(false);
         if (details.trailerYoutubeId) {
           setTrailer({ key: details.trailerYoutubeId, name: details.title + ' Trailer' });
         } else {
-          try {
-            const videos = await getMovieVideos(id);
-            setTrailer(videos.length > 0 ? videos[0] : null);
-          } catch { setTrailer(null); }
+          getMovieVideos(id).then(videos => {
+            if (!cancelled) setTrailer(videos[0] || null);
+          }).catch(() => {});
         }
-
-        try {
-          const sim = await getSimilarMovies(id);
-          setSimilar(sim || []);
-        } catch { setSimilar([]); }
-
-        try {
-          const credits = await getMovieCredits(id);
-          setCast(credits?.cast || []);
-        } catch { setCast([]); }
-
-      } catch (err) {
-        console.error('Failed to load anime:', err);
-      } finally {
-        setLoading(false);
+        // Optional sections load after the main page is already usable.
+        getSimilarMovies(id).then(items => {
+          if (!cancelled) setSimilar(items || []);
+        }).catch(() => {});
+        getMovieCredits(id).then(credits => {
+          if (!cancelled) setCast(credits?.cast || []);
+        }).catch(() => {});
+      } catch {
+        if (!cancelled) setLoading(false);
       }
     };
     load();
     window.scrollTo(0, 0);
+    return () => { cancelled = true; };
   }, [id]);
 
   if (loading) {

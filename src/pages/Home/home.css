@@ -35,7 +35,7 @@
   overflow: hidden;
 }
 
-.hero-video-iframe {
+.hero-video-bg iframe {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -396,7 +396,7 @@
   .section-header h2 {
     font-size: 18px;
   }
-  .hero-video-iframe {
+  .hero-video-bg iframe {
     width: 177.78vh;
     height: 56.25vw;
   }
@@ -448,3 +448,8 @@
     gap: 10px;
   }
 }
+
+/* Keep the backdrop visible during YouTube startup, buffering and pauses. */
+.hero-video-bg { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+.hero-video-bg.is-playing { opacity: 1; }
+.hero-video-bg iframe { pointer-events: none; }
