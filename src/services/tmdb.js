@@ -1,37 +1,63 @@
 // Jikan API v4 - Free MyAnimeList API (no key needed)
 const BASE = 'https://api.jikan.moe/v4';
 
-// Queue-based rate limiter for Jikan (3 req/sec max)
+// Serialize requests and bound retries so a failed request cannot stall the queue.
 const queue = [];
+const pending = new Map();
 let processing = false;
+const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-function processQueue() {
-  if (processing || queue.length === 0) return;
+async function processQueue() {
+  if (processing) return;
   processing = true;
-  const { url, resolve, reject } = queue.shift();
-  fetch(url)
-    .then(res => {
-      if (res.status === 429) {
-        // Rate limited - re-queue with delay
-        queue.unshift({ url, resolve, reject });
-        setTimeout(() => { processing = false; processQueue(); }, 1000);
-        return;
+  try {
+    while (queue.length) {
+      const task = queue.shift();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      let retryDelay = 1000 * (task.attempt + 1);
+      try {
+        const res = await fetch(task.url, { signal: controller.signal });
+        if (!res.ok) {
+          const error = new Error(`Jikan: ${res.status}`);
+          error.retryable = res.status === 429 || res.status >= 500;
+          const retryAfter = res.headers.get('Retry-After');
+          if (retryAfter) {
+            const seconds = Number(retryAfter);
+            const delay = Number.isFinite(seconds) ? seconds * 1000 : Date.parse(retryAfter) - Date.now();
+            if (Number.isFinite(delay)) retryDelay = Math.max(1000, Math.min(delay, 10000));
+          }
+          throw error;
+        }
+        task.resolve(await res.json());
+      } catch (error) {
+        if (task.attempt < 2 && error.retryable !== false) {
+          // Rejoin at the back so other categories can still load.
+          setTimeout(() => {
+            queue.push({ ...task, attempt: task.attempt + 1 });
+            processQueue();
+          }, retryDelay);
+        } else {
+          task.reject(new Error('Anime could not be loaded. Check your connection and try again.', { cause: error }));
+        }
+      } finally {
+        clearTimeout(timeout);
       }
-      if (!res.ok) throw new Error(`Jikan: ${res.status}`);
-      return res.json();
-    })
-    .then(data => { if (data) resolve(data); })
-    .catch(reject)
-    .finally(() => {
-      setTimeout(() => { processing = false; processQueue(); }, 340);
-    });
+      await pause(400);
+    }
+  } finally {
+    processing = false;
+  }
 }
 
 function jikanFetch(url) {
-  return new Promise((resolve, reject) => {
-    queue.push({ url, resolve, reject });
+  if (pending.has(url)) return pending.get(url);
+  const request = new Promise((resolve, reject) => {
+    queue.push({ url, resolve, reject, attempt: 0 });
     processQueue();
-  });
+  }).finally(() => pending.delete(url));
+  pending.set(url, request);
+  return request;
 }
 
 // Extract YouTube ID from embed_url or youtube_id

@@ -29,7 +29,8 @@ const categories = [
 const Home = () => {
   const [sections, setSections] = useState({});
   const [hero, setHero] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({});
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const heroLocked = useRef(false);
@@ -48,10 +49,12 @@ const Home = () => {
     let cancelled = false;
 
     const load = async () => {
-      for (const cat of categories) {
+      await Promise.all(categories.map(async (cat) => {
         if (cancelled) return;
         try {
           const results = await cat.fetcher();
+
+          if (cancelled) return;
 
           // Lock hero to the first pick — never change it again
           if (!heroLocked.current && results.length > 0) {
@@ -64,16 +67,26 @@ const Home = () => {
             setSections(prev => ({ ...prev, [cat.title]: results }));
           }
         } catch (err) {
-          console.error(`Failed to load ${cat.title}:`, err);
+          if (!cancelled) setErrors(prev => ({ ...prev, [cat.title]: err.message }));
         }
-      }
-
-      if (!cancelled) setLoading(false);
+      }));
     };
 
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [loadAttempt]);
+
+  const retry = () => {
+    setErrors({});
+    setLoadAttempt(value => value + 1);
+  };
+
+  const errorNotice = (title) => (
+    <div className="load-error" role="alert">
+      <p>{errors[title]}</p>
+      <button className="btn-info" onClick={retry}>Retry</button>
+    </div>
+  );
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -144,9 +157,9 @@ const Home = () => {
           </div>
         ) : (
           <div className="home-hero-content">
-            <div className="hero-loading">
-              <div className="loading-shimmer" />
-            </div>
+            {errors[categories[0].title] ? errorNotice(categories[0].title) : (
+              <div className="hero-loading"><div className="loading-shimmer" /></div>
+            )}
           </div>
         )}
       </section>}
@@ -169,7 +182,8 @@ const Home = () => {
               {(sections[activeCat.title] || []).map((anime, i) => (
                 <TitleCard key={`${anime.id}-${i}`} movie={anime} />
               ))}
-              {!sections[activeCat.title] && (
+              {errors[activeCat.title] && errorNotice(activeCat.title)}
+              {!sections[activeCat.title] && !errors[activeCat.title] && (
                 <div className="loading-cards">
                   {[1, 2, 3, 4, 5, 6].map(j => (
                     <div key={j} className="loading-card" />
@@ -198,7 +212,13 @@ const Home = () => {
             {categories.map((cat, idx) => {
               const items = sections[cat.title];
               if (!items || items.length === 0) {
-                if (loading || !sections[cat.title]) {
+                if (errors[cat.title]) return (
+                  <section key={cat.title} className="movie-section">
+                    <div className="section-header"><h2>{cat.title}</h2></div>
+                    {errorNotice(cat.title)}
+                  </section>
+                );
+                if (!sections[cat.title]) {
                   return (
                     <section key={cat.title} className="movie-section">
                       <div className="section-header">
