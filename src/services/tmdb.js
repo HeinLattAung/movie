@@ -1,5 +1,5 @@
 // Jikan API v4 - Free MyAnimeList API (no key needed)
-const BASE = 'https://api.jikan.moe/v4';
+const BASE = '/api/anime';
 
 // Serialize requests and bound retries so a failed request cannot stall the queue.
 const queue = [];
