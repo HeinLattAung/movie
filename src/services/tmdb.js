@@ -14,7 +14,7 @@ async function processQueue() {
     while (queue.length) {
       const task = queue.shift();
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
+      const timeout = setTimeout(() => controller.abort(), 16000);
       let retryDelay = 1000 * (task.attempt + 1);
       try {
         const res = await fetch(task.url, { signal: controller.signal });

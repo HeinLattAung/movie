@@ -1,3 +1,5 @@
+import { fallbackAnime } from '../server/anilist.js';
+
 const allowedPath = /^(?:top\/anime|seasons\/(?:now|upcoming)|anime(?:\/\d+\/(?:full|videos|recommendations|characters))?)$/;
 const allowedParams = new Set(['q', 'limit', 'genres', 'order_by', 'sort', 'sfw', 'filter', 'page']);
 
@@ -26,7 +28,8 @@ export default async function handler(req, res) {
       if (response.status === 429) {
         res.setHeader('Retry-After', response.headers.get('Retry-After') || '2');
       }
-      return res.status(response.status === 429 ? 429 : 502).json({ message: 'Anime provider is temporarily unavailable. Please retry.' });
+      if (response.status !== 429) throw new Error('Provider unavailable');
+      return res.status(429).json({ message: 'Anime provider is temporarily unavailable. Please retry.' });
     }
     const data = await response.json();
     if (!data || !Object.hasOwn(data, 'data')) throw new Error('Invalid provider response');
@@ -34,6 +37,12 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
     return res.status(200).json(data);
   } catch {
+    try {
+      const data = await fallbackAnime(path, incoming.searchParams);
+      res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
+      res.setHeader('X-Anime-Provider', 'AniList');
+      return res.status(200).json(data);
+    } catch { /* Both providers are unavailable. */ }
     return res.status(502).json({ message: 'Anime provider could not be reached. Please retry.' });
   }
 }
